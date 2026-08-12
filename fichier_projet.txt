@@ -1,0 +1,861 @@
+À partir de ce document, il est possible de concevoir une petite application web de gestion des Bons de Livraison (BL) de carburants. Le document contient les informations essentielles : numéro de BL, camion, quantité, produit, destination, chauffeur, client, transporteur et date de liquidation.
+
+Je proposerais une application simple avec Laravel 12 + MySQL + Bootstrap 5, organisée comme suit.
+
+Tableau de bord
+
+Au démarrage, l'utilisateur voit :
+
+Nombre total de BL
+BL en cours
+BL liquidés
+Volume total d'Essence
+Volume total de Gasoil
+Répartition par destination
+Graphique des volumes transportés
+Gestion des Bons de Livraison
+
+Liste complète des BL avec :
+
+N° BL
+Camion
+Produit
+Quantité
+Destination
+Chauffeur
+Client
+Transporteur
+Date
+Statut
+
+Actions :
+
+Ajouter
+Modifier
+Supprimer
+Rechercher
+Imprimer
+Export Excel/PDF
+Gestion des Camions
+
+Chaque camion possède :
+
+Immatriculation
+Transporteur
+Capacité
+Nombre de rotations
+Historique des BL
+Gestion des Chauffeurs
+Nom
+Téléphone
+Transporteur
+Nombre de voyages
+Volume transporté
+Gestion des Clients
+
+Exemples présents dans votre document :
+
+Mohamed Diallo
+Sow Fadiya
+Guilavogui
+
+Chaque client dispose de :
+
+Historique
+Quantité livrée
+Nombre de BL
+Gestion des Destinations
+
+Par exemple :
+
+SGP Kankan
+Komarala
+Doko
+Missiran
+Mamou
+Kouroussa
+Kansikeren
+
+Pour chaque destination :
+
+Nombre de livraisons
+Volume Essence
+Volume Gasoil
+Liquidation
+
+Module permettant de suivre les BL déjà liquidés.
+
+Colonnes :
+
+N° BL
+Date de liquidation
+Statut
+
+Filtres :
+
+Liquidés
+En attente
+Statistiques
+
+Graphiques :
+
+Essence vs Gasoil
+Quantité par destination
+Quantité par client
+Quantité par transporteur
+Nombre de rotations par camion
+Évolution mensuelle
+Base de données
+bl
+id
+numero_bl
+date_bl
+camion_id
+chauffeur_id
+client_id
+transporteur_id
+destination_id
+produit
+quantite
+date_liquidation
+statut
+observations
+created_at
+updated_at
+camions
+id
+immatriculation
+capacite
+transporteur_id
+chauffeurs
+id
+nom
+telephone
+clients
+id
+nom
+destinations
+id
+nom
+transporteurs
+id
+nom
+Fonctionnalités supplémentaires
+Authentification
+Gestion des utilisateurs
+Journal des actions
+Sauvegarde automatique
+Impression des BL
+Export Excel
+Export PDF
+Recherche multicritère
+Filtres par période
+Import des BL depuis Excel
+Tableau de bord (aperçu)
++------------------------------------------------------+
+|              GESTION DES BL CARBURANT                |
++------------------------------------------------------+
+
+Total BL                145
+
+Essence                 98
+
+Gasoil                  47
+
+Volume Transporté
+4 820 000 L
+
+BL en attente
+17
+
+BL liquidés
+128
+
+----------------------------------------
+
+Top Destinations
+
+SGP KANKAN
+KOMARALA
+DOKO
+MAMOU
+
+----------------------------------------
+
+Derniers BL
+
+1490/26
+1489/26
+1488/26
+1487/26
+...
+Évolutions possibles
+
+Cette application peut évoluer vers une véritable solution de gestion logistique avec :
+
+gestion des stocks de dépôts,
+suivi GPS des camions,
+génération automatique des bons de livraison,
+gestion des citernes,
+suivi des commandes clients,
+gestion des paiements et des factures,
+tableau de bord décisionnel avec graphiques interactifs,
+notifications par SMS ou e-mail.
+
+_____________
+
+
+Modules de l'application
+1. Tableau de bord
+Nombre total de BL
+BL en cours
+BL liquidés
+Volume Essence
+Volume Gasoil
+Livraisons du jour
+Camions en circulation
+Dernières opérations
+Graphiques interactifs (Chart.js)
+2. Gestion des Bons de Livraison
+
+Informations :
+
+Numéro BL
+Date
+Produit
+Quantité
+Camion
+Chauffeur
+Client
+Destination
+Transporteur
+Prix du transport (option)
+Observations
+Statut :
+En cours
+Livré
+Liquidé
+Annulé
+
+Fonctionnalités :
+
+Création
+Modification
+Suppression
+Duplication
+Impression
+Export PDF
+Export Excel
+Historique des modifications
+3. Gestion des Camions
+Immatriculation
+Capacité
+Marque
+Type de citerne
+Transporteur
+Assurance
+Date de visite technique
+État
+
+Chaque camion possède un historique complet des BL.
+
+4. Gestion des Chauffeurs
+Nom
+Téléphone
+Numéro de permis
+Date d'expiration du permis
+Transporteur
+Nombre de voyages
+Volume transporté
+5. Gestion des Clients
+Nom
+Téléphone
+Adresse
+Personne de contact
+
+Historique :
+
+Nombre de BL
+Quantité livrée
+Produits livrés
+6. Gestion des Destinations
+
+Pour chaque destination :
+
+Région
+Distance
+Nombre de livraisons
+Volume Essence
+Volume Gasoil
+7. Gestion des Transporteurs
+Nom
+Responsable
+Téléphone
+Adresse
+Nombre de camions
+Nombre de BL
+8. Liquidation
+
+Cette partie devient un véritable suivi administratif.
+
+Pour chaque BL :
+
+Date de livraison
+Date de liquidation
+Pièces justificatives
+Observations
+Statut
+
+Possibilité de liquider plusieurs BL simultanément.
+
+9. Rapports
+
+Rapports par :
+
+période
+client
+camion
+chauffeur
+destination
+produit
+transporteur
+
+Exports :
+
+Excel
+PDF
+Impression
+10. Administration
+Utilisateurs
+Profils
+Permissions
+Journal des actions
+Sauvegardes
+Paramètres
+Base de données
+bl
+id
+numero_bl
+date_bl
+camion_id
+chauffeur_id
+client_id
+destination_id
+transporteur_id
+produit
+quantite
+prix_transport
+date_livraison
+date_liquidation
+statut
+observation
+created_by
+updated_by
+timestamps
+camions
+id
+immatriculation
+marque
+capacite
+type_citerne
+transporteur_id
+etat
+date_assurance
+date_visite
+timestamps
+chauffeurs
+id
+nom
+telephone
+numero_permis
+expiration_permis
+transporteur_id
+timestamps
+clients
+id
+nom
+telephone
+adresse
+contact
+timestamps
+destinations
+id
+nom
+region
+distance
+timestamps
+transporteurs
+id
+nom
+responsable
+telephone
+adresse
+timestamps
+users
+id
+name
+email
+password
+role
+timestamps
+activity_logs
+id
+user_id
+action
+table
+record_id
+created_at
+Arborescence du projet
+app/
+ ├── Models
+ ├── Http
+ │     ├── Controllers
+ │     ├── Requests
+ │     └── Middleware
+ ├── Services
+ ├── Repositories
+ └── Exports
+
+database/
+ ├── migrations
+ ├── seeders
+
+resources/
+ ├── views
+ │     ├── dashboard
+ │     ├── bl
+ │     ├── camions
+ │     ├── chauffeurs
+ │     ├── clients
+ │     ├── destinations
+ │     ├── transporteurs
+ │     └── rapports
+
+routes/
+    web.php
+Tableau de bord
+---------------------------------------------------------------
+            GESTION DES BONS DE LIVRAISON
+---------------------------------------------------------------
+
+BL Total                 156
+
+En cours                  24
+
+Liquidés                 132
+
+Essence             3 250 000 L
+
+Gasoil              1 870 000 L
+
+Camions actifs            18
+
+Chauffeurs                26
+
+Transporteurs              6
+
+---------------------------------------------------------------
+
+Volumes mensuels
+
+███████████
+
+---------------------------------------------------------------
+
+Top destinations
+
+1. SGP Kankan
+2. Komarala
+3. Doko
+4. Mamou
+
+---------------------------------------------------------------
+
+Derniers BL
+
+1546/26
+1545/26
+1544/26
+1543/26
+Fonctionnalités avancées (Version 2)
+Génération automatique des numéros de BL.
+Import des BL depuis Excel.
+Lecture de QR Code pour retrouver rapidement un BL.
+Impression du BL au format A4.
+Gestion des pièces jointes (BL signé, reçus, etc.).
+Notifications par e-mail ou SMS lors des livraisons.
+Tableau de bord décisionnel avec indicateurs de performance (KPI).
+API REST pour une application mobile.
+Géolocalisation des camions (GPS).
+Gestion des stocks des dépôts.
+Gestion des commandes clients.
+Gestion de la facturation et des paiements.
+Proposition de réalisation
+
+Je recommande de développer cette application en plusieurs versions :
+
+Version 1.0 : gestion complète des BL, camions, chauffeurs, clients, destinations, transporteurs, tableau de bord, authentification, impression et exports.
+Version 2.0 : import Excel, QR Code, rapports avancés, journal d'audit et gestion documentaire.
+Version 3.0 : gestion des stocks, commandes, facturation, suivi GPS et application mobile.
+
+Cette approche permet d'obtenir rapidement une première version opérationnelle tout en préparant l'évolution vers une solution logistique complète adaptée à une société de distribution de produits pétroliers.
+
+Commencons par la version 1
+
+Excellente idée. Pour un projet Laravel, il est préférable de construire une base solide plutôt que de développer tous les modules en même temps.
+
+Version 1.0 – Gestion des Bons de Livraison Carburants
+Objectif
+
+Développer une application web professionnelle permettant de gérer l'ensemble des Bons de Livraison (BL) de carburants (Essence et Gasoil), depuis leur création jusqu'à leur liquidation.
+
+Stack technique
+Élément	Technologie
+Framework	Laravel 12
+Langage	PHP 8.3
+Base de données	MySQL 8
+Interface	Bootstrap 5
+Icônes	Bootstrap Icons
+Graphiques	Chart.js
+Export Excel	Laravel Excel
+Export PDF	DomPDF
+Authentification	Laravel Breeze
+Gestion des rôles	Spatie Laravel Permission
+Architecture fonctionnelle
+Accueil
+│
+├── Tableau de bord
+│
+├── Bons de Livraison
+│     ├── Liste
+│     ├── Nouveau
+│     ├── Modifier
+│     ├── Détails
+│     └── Impression
+│
+├── Camions
+│
+├── Chauffeurs
+│
+├── Clients
+│
+├── Destinations
+│
+├── Transporteurs
+│
+├── Liquidations
+│
+├── Rapports
+│
+└── Administration
+      ├── Utilisateurs
+      └── Paramètres
+Les écrans
+1. Connexion
+Email
+Mot de passe
+2. Tableau de bord
+Cartes statistiques
++---------------------+
+| Total BL            |
+| 154                 |
++---------------------+
+
++---------------------+
+| Essence             |
+| 98                  |
++---------------------+
+
++---------------------+
+| Gasoil              |
+| 56                  |
++---------------------+
+
++---------------------+
+| BL Liquidés         |
+| 120                 |
++---------------------+
+
++---------------------+
+| En attente          |
+| 34                  |
++---------------------+
+
+Puis :
+
+graphique mensuel
+derniers BL
+top destinations
+3. Liste des BL
+N° BL
+
+Date
+
+Camion
+
+Produit
+
+Quantité
+
+Destination
+
+Client
+
+Chauffeur
+
+Statut
+
+Actions
+
+Boutons
+
+Nouveau BL
+
+Exporter Excel
+
+Exporter PDF
+
+Imprimer
+
+Recherche
+4. Création d'un BL
+
+Formulaire
+
+Numéro BL
+
+Date
+
+Produit
+
+○ Essence
+
+○ Gasoil
+
+Quantité
+
+Camion
+
+Chauffeur
+
+Client
+
+Transporteur
+
+Destination
+
+Observation
+
+Enregistrer
+5. Fiche BL
+
+Affichage complet
+
+BL : 1456/26
+
+Produit : Essence
+
+Quantité : 45 000 L
+
+Camion :
+
+GN-5684-C
+
+Destination :
+
+SGP Kankan
+
+Client :
+
+Mohamed Diallo
+
+Chauffeur :
+
+Abdoulaye Bah
+
+Statut :
+
+En cours
+6. Liquidation
+BL
+
+Date livraison
+
+Date liquidation
+
+Statut
+
+Observation
+
+Bouton
+
+Liquider
+7. Gestion des camions
+Immatriculation
+
+Capacité
+
+Transporteur
+
+Nombre de BL
+
+Actions
+8. Chauffeurs
+Nom
+
+Téléphone
+
+Transporteur
+
+Nombre de rotations
+9. Clients
+Nom
+
+Téléphone
+
+Nombre BL
+
+Volume
+10. Destinations
+Nom
+
+Nombre de livraisons
+
+Volume Essence
+
+Volume Gasoil
+11. Rapports
+
+Filtres
+
+Date début
+
+Date fin
+
+Produit
+
+Client
+
+Destination
+
+Transporteur
+
+Résultat
+
+Nombre BL
+
+Volume
+
+Graphique
+
+Export PDF
+
+Export Excel
+Base de données
+users
+roles
+permissions
+
+bl
+
+camions
+
+chauffeurs
+
+clients
+
+destinations
+
+transporteurs
+
+activity_logs
+Relations Eloquent
+BL
+
+belongsTo Camion
+
+belongsTo Chauffeur
+
+belongsTo Client
+
+belongsTo Destination
+
+belongsTo Transporteur
+Camion
+
+hasMany BL
+Client
+
+hasMany BL
+Destination
+
+hasMany BL
+Transporteur
+
+hasMany Camions
+
+hasMany BL
+Les rôles
+Administrateur
+
+Accès total.
+
+Exploitation
+créer BL
+modifier BL
+liquider
+Consultation
+
+Lecture seule.
+
+Menu latéral
+🏠 Tableau de bord
+
+📄 Bons de Livraison
+
+🚛 Camions
+
+👷 Chauffeurs
+
+👥 Clients
+
+📍 Destinations
+
+🏢 Transporteurs
+
+💰 Liquidations
+
+📊 Rapports
+
+⚙ Administration
+Plan de développement
+
+Je vous propose de réaliser le projet étape par étape, comme un véritable projet professionnel :
+
+Sprint 1 : Initialisation
+Création du projet Laravel 12
+Installation de Bootstrap 5, Laravel Breeze et Spatie Permission
+Configuration MySQL
+Authentification
+Layout principal (sidebar, navbar, footer)
+Sprint 2 : Référentiels
+Gestion des transporteurs
+Gestion des camions
+Gestion des chauffeurs
+Gestion des clients
+Gestion des destinations
+Sprint 3 : Gestion des Bons de Livraison
+CRUD complet des BL
+Recherche et filtres
+Impression
+Sprint 4 : Tableau de bord et statistiques
+Indicateurs clés
+Graphiques
+Rapports
+Sprint 5 : Exports et finalisation
+Export Excel
+Export PDF
+Journal des actions
+Optimisations
+
+Cette approche permettra d'obtenir une application robuste, maintenable et prête à évoluer vers les versions 2.0 et 3.0.
