@@ -1,0 +1,15 @@
+# Apache URL Rewriting for React Single Page Application (SPA)
+# Ensures that routes like /bl, /camions, /liquidations work on page refresh without 404 errors
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # Do not rewrite existing files or directories
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-l
+  
+  # Redirect all other page requests to index.html for React Router
+  RewriteRule ^ index.html [QSA,L]
+</IfModule>

@@ -4,7 +4,7 @@ import { useTheme } from '../context/ThemeContext';
 import { LogOut, Sun, Moon, Palette, Menu, User, ChevronDown } from 'lucide-react';
 import ProfileModal from './ProfileModal';
 import ThemeSettingsModal from './ThemeSettingsModal';
-import { getAvatarUrl } from '../utils/avatar';
+import { getAvatarUrl, handleAvatarError } from '../utils/avatar';
 
 const Navbar = ({ onToggleSidebar }) => {
   const { user, logout } = useAuth();
@@ -82,6 +82,7 @@ const Navbar = ({ onToggleSidebar }) => {
               <img
                 src={getAvatarUrl(user?.avatar, user?.name)}
                 alt={user?.name}
+                onError={(e) => handleAvatarError(e, user?.name)}
                 className="w-7 h-7 rounded-full object-cover border-2 border-red-500 shrink-0"
               />
               <div className="hidden sm:block">
@@ -101,6 +102,7 @@ const Navbar = ({ onToggleSidebar }) => {
                   <img
                     src={getAvatarUrl(user?.avatar, user?.name)}
                     alt={user?.name}
+                    onError={(e) => handleAvatarError(e, user?.name)}
                     className="w-10 h-10 rounded-full object-cover border-2 border-red-500 shrink-0"
                   />
                   <div className="overflow-hidden">

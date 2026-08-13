@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { ShieldCheck, Plus, Edit, Trash2, X, Upload, Download } from 'lucide-react';
 import { generateTablePdf } from '../utils/generateTablePdf';
-import { getAvatarUrl } from '../utils/avatar';
+import { getAvatarUrl, handleAvatarError } from '../utils/avatar';
 
 const UsersList = () => {
   const [users, setUsers] = useState([]);
@@ -169,6 +169,7 @@ const UsersList = () => {
                     <img
                       src={getAvatarUrl(u.avatar, u.name)}
                       alt={u.name}
+                      onError={(e) => handleAvatarError(e, u.name)}
                       className="w-9 h-9 rounded-full object-cover border border-purple-400"
                     />
                   </td>

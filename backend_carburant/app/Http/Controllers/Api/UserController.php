@@ -33,7 +33,21 @@ class UserController extends Controller
         if ($request->hasFile('photo')) {
             $file = $request->file('photo');
             $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/avatars'), $filename);
+            
+            // Primary upload location (public/uploads/avatars)
+            $publicDir = public_path('uploads/avatars');
+            if (!file_exists($publicDir)) {
+                @mkdir($publicDir, 0755, true);
+            }
+            $file->move($publicDir, $filename);
+
+            // Root uploads folder fallback (base_path('uploads/avatars'))
+            $rootDir = base_path('uploads/avatars');
+            if (!file_exists($rootDir)) {
+                @mkdir($rootDir, 0755, true);
+            }
+            @copy($publicDir . '/' . $filename, $rootDir . '/' . $filename);
+
             // Store relative path in database
             $validated['avatar'] = '/uploads/avatars/' . $filename;
         }
@@ -71,7 +85,21 @@ class UserController extends Controller
         if ($request->hasFile('photo')) {
             $file = $request->file('photo');
             $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/avatars'), $filename);
+            
+            // Primary upload location (public/uploads/avatars)
+            $publicDir = public_path('uploads/avatars');
+            if (!file_exists($publicDir)) {
+                @mkdir($publicDir, 0755, true);
+            }
+            $file->move($publicDir, $filename);
+
+            // Root uploads folder fallback (base_path('uploads/avatars'))
+            $rootDir = base_path('uploads/avatars');
+            if (!file_exists($rootDir)) {
+                @mkdir($rootDir, 0755, true);
+            }
+            @copy($publicDir . '/' . $filename, $rootDir . '/' . $filename);
+
             // Store relative path in database
             $validated['avatar'] = '/uploads/avatars/' . $filename;
         }

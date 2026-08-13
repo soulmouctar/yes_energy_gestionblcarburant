@@ -1,13 +1,20 @@
 import axios from 'axios';
 
 // Development: Uses '/api' proxy (http://127.0.0.1:8001)
-// Production: Uses 'https://apiyesenergy.ddevstock.com/api'
-const API_BASE_URL = import.meta.env.DEV
-  ? (import.meta.env.VITE_API_URL || '/api')
-  : (import.meta.env.VITE_API_URL || 'https://apiyesenergy.ddevstock.com/api');
+// Production: Uses VITE_API_URL environment variable or falls back to relative '/api'
+const getApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  if (import.meta.env.DEV) {
+    return '/api';
+  }
+  // Production fallback: relative /api endpoint or backend URL
+  return '/api';
+};
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: getApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { X, User, Save, Upload, Check, Image as ImageIcon } from 'lucide-react';
-import { getAvatarUrl } from '../utils/avatar';
+import { getAvatarUrl, handleAvatarError } from '../utils/avatar';
 
 const ProfileModal = ({ onClose }) => {
   const { user } = useAuth();
@@ -88,8 +88,9 @@ const ProfileModal = ({ onClose }) => {
           <div className="flex flex-col items-center gap-3 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
             <div className="relative group">
               <img
-                src={previewUrl || defaultAvatar}
+                src={previewUrl}
                 alt="Avatar réel"
+                onError={(e) => handleAvatarError(e, name)}
                 className="w-24 h-24 rounded-full object-cover border-4 border-amber-400 shadow-xl shadow-amber-500/20"
               />
               <label className="absolute bottom-0 right-0 bg-amber-500 hover:bg-amber-600 text-slate-950 p-2 rounded-full cursor-pointer shadow-md transition">
