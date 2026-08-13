@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { History, ShieldCheck, User, Clock, Search, Terminal } from 'lucide-react';
+import { History, ShieldCheck, User, Clock, Search, Terminal, Download } from 'lucide-react';
+import { generateTablePdf } from '../utils/generateTablePdf';
 
 const AuditLogs = () => {
   const [logs, setLogs] = useState([]);
@@ -28,15 +29,44 @@ const AuditLogs = () => {
     l.details?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleExportPdf = () => {
+    generateTablePdf({
+      title: 'Journal d\'Audit & Traçabilité Sécurité',
+      subtitle: 'Historique des actions, créations, modifications et suppressions système',
+      summaryText: `Total : ${filteredLogs.length} Événement(s) d'audit répertorié(s)`,
+      action: 'download',
+      filename: 'Journal_Audit_YES_ENERGY.pdf',
+      columns: [
+        { header: 'Horodatage', accessor: (l) => l.created_at, width: 'auto' },
+        { header: 'Utilisateur', accessor: (l) => l.user_name || 'Système', bold: true, width: 'auto' },
+        { header: 'Action', accessor: (l) => l.action, alignment: 'center', bold: true, width: 'auto' },
+        { header: 'Module', accessor: (l) => (l.table_name || '-').toUpperCase(), width: 'auto' },
+        { header: 'Détails & Description', accessor: (l) => l.details || '-', width: '*' },
+        { header: 'Adresse IP', accessor: (l) => l.ip_address || '-', width: 'auto' }
+      ],
+      rows: filteredLogs
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <History className="w-6 h-6 text-purple-400" />
             Journal des Activités & Audit Trail
           </h2>
           <p className="text-sm text-slate-400">Traçabilité complète des événements et modifications effectuées dans le système</p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExportPdf}
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition shadow-lg cursor-pointer"
+          >
+            <Download className="w-4 h-4 text-white" />
+            <span>Exporter PDF</span>
+          </button>
         </div>
       </div>
 

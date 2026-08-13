@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { BarChart3, Filter, Download, Printer, RefreshCw } from 'lucide-react';
+import { BarChart3, Filter, Download, RefreshCw } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import * as XLSX from 'xlsx';
+import { generateTablePdf } from '../utils/generateTablePdf';
 
 const Rapports = () => {
   const [reportData, setReportData] = useState(null);
@@ -86,6 +87,34 @@ const Rapports = () => {
     XLSX.writeFile(workbook, `Rapport_Carburant_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
+  const handleExportPdf = () => {
+    if (!reportData || !reportData.data) return;
+
+    const totalEssence = Number(reportData.summary?.volume_essence || 0).toLocaleString('fr-FR').replace(/\u8998/g, ' ');
+    const totalGasoil = Number(reportData.summary?.volume_gasoil || 0).toLocaleString('fr-FR').replace(/\u8998/g, ' ');
+    const totalGlobal = Number(reportData.summary?.total_volume || 0).toLocaleString('fr-FR').replace(/\u8998/g, ' ');
+
+    generateTablePdf({
+      title: 'Bilan et Rapport Multi-Critères de Carburants',
+      subtitle: 'Société Guinéenne d\'Énergie & Distribution Pétrolière',
+      summaryText: `Total : ${reportData.summary?.total_bl || 0} BL(s) | Volume Essence : ${totalEssence} L | Volume Gasoil : ${totalGasoil} L | Total Global : ${totalGlobal} Litres`,
+      action: 'download',
+      filename: `Rapport_Bilan_Carburant_${new Date().toISOString().split('T')[0]}.pdf`,
+      columns: [
+        { header: 'N° BL', accessor: (b) => b.numero_bl, bold: true, width: 'auto' },
+        { header: 'Date', accessor: (b) => b.date_bl || '-', width: 'auto' },
+        { header: 'Produit', accessor: (b) => b.produit, width: 'auto' },
+        { header: 'Volume (L)', accessor: (b) => `${Number(b.quantite || 0).toLocaleString('fr-FR').replace(/\u8998/g, ' ')} L`, alignment: 'right', bold: true, width: 'auto' },
+        { header: 'Client', accessor: (b) => b.client?.nom || '-', width: '*' },
+        { header: 'Destination', accessor: (b) => `${b.destination?.nom || ''} (${b.destination?.region || ''})`, width: '*' },
+        { header: 'Transporteur', accessor: (b) => b.transporteur?.nom || '-', width: '*' },
+        { header: 'Camion', accessor: (b) => b.camion?.immatriculation || '-', width: 'auto' },
+        { header: 'Statut', accessor: (b) => b.statut, alignment: 'center', width: 'auto' }
+      ],
+      rows: reportData.data
+    });
+  };
+
   const COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6'];
 
   return (
@@ -93,7 +122,7 @@ const Rapports = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <BarChart3 className="w-6 h-6 text-amber-400" />
             Rapports Multi-Critères & Graphiques Analyste
           </h2>
@@ -103,17 +132,18 @@ const Rapports = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={handleExportExcel}
-            className="flex items-center gap-2 bg-slate-900 border border-slate-700 hover:border-slate-600 text-slate-200 hover:text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition cursor-pointer"
+            className="flex items-center gap-2 bg-slate-900 border border-slate-700 hover:border-slate-600 text-slate-200 hover:text-white px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer"
           >
             <Download className="w-4 h-4 text-emerald-400" />
             <span>Exporter Excel</span>
           </button>
+
           <button
-            onClick={() => window.print()}
-            className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-sm transition shadow-lg shadow-amber-500/20 cursor-pointer"
+            onClick={handleExportPdf}
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition shadow-lg cursor-pointer"
           >
-            <Printer className="w-4 h-4" />
-            <span>Imprimer le Bilan</span>
+            <Download className="w-4 h-4 text-white" />
+            <span>Exporter PDF</span>
           </button>
         </div>
       </div>
@@ -254,17 +284,17 @@ const Rapports = () => {
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow">
           <span className="text-[11px] font-bold text-amber-400 uppercase">Volume Essence Total</span>
-          <div className="text-3xl font-black text-amber-400 mt-1">{Number(reportData?.summary?.volume_essence || 0).toLocaleString('fr-FR')} <span className="text-xs font-bold text-slate-400">L</span></div>
+          <div className="text-3xl font-black text-amber-400 mt-1">{Number(reportData?.summary?.volume_essence || 0).toLocaleString('fr-FR').replace(/\u8998/g, ' ')} <span className="text-xs font-bold text-slate-400">L</span></div>
         </div>
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow">
           <span className="text-[11px] font-bold text-blue-400 uppercase">Volume Gasoil Total</span>
-          <div className="text-3xl font-black text-blue-400 mt-1">{Number(reportData?.summary?.volume_gasoil || 0).toLocaleString('fr-FR')} <span className="text-xs font-bold text-slate-400">L</span></div>
+          <div className="text-3xl font-black text-blue-400 mt-1">{Number(reportData?.summary?.volume_gasoil || 0).toLocaleString('fr-FR').replace(/\u8998/g, ' ')} <span className="text-xs font-bold text-slate-400">L</span></div>
         </div>
 
         <div className="bg-gradient-to-br from-amber-500/10 to-slate-900 border border-amber-500/20 rounded-2xl p-4 shadow">
           <span className="text-[11px] font-bold text-slate-300 uppercase">Volume Global Transporté</span>
-          <div className="text-3xl font-black text-white mt-1">{Number(reportData?.summary?.total_volume || 0).toLocaleString('fr-FR')} <span className="text-xs font-bold text-slate-400">L</span></div>
+          <div className="text-3xl font-black text-white mt-1">{Number(reportData?.summary?.total_volume || 0).toLocaleString('fr-FR').replace(/\u8998/g, ' ')} <span className="text-xs font-bold text-slate-400">L</span></div>
         </div>
       </div>
 
@@ -280,7 +310,7 @@ const Rapports = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                 <XAxis dataKey="name" stroke="#64748b" fontSize={11} />
                 <YAxis stroke="#64748b" fontSize={11} tickFormatter={(v) => `${v / 1000}k`} />
-                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff' }} formatter={(val) => [`${Number(val).toLocaleString('fr-FR')} L`, 'Volume']} />
+                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff' }} formatter={(val) => [`${Number(val).toLocaleString('fr-FR').replace(/\u8998/g, ' ')} L`, 'Volume']} />
                 <Bar dataKey="volume" fill="#f59e0b" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -297,7 +327,7 @@ const Rapports = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                 <XAxis dataKey="name" stroke="#64748b" fontSize={11} />
                 <YAxis stroke="#64748b" fontSize={11} tickFormatter={(v) => `${v / 1000}k`} />
-                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff' }} formatter={(val) => [`${Number(val).toLocaleString('fr-FR')} L`, 'Volume']} />
+                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff' }} formatter={(val) => [`${Number(val).toLocaleString('fr-FR').replace(/\u8998/g, ' ')} L`, 'Volume']} />
                 <Bar dataKey="volume" fill="#3b82f6" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -333,7 +363,7 @@ const Rapports = () => {
                   <td className="py-3 px-4">
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${bl.produit === 'Essence' ? 'bg-amber-500/10 text-amber-400' : 'bg-blue-500/10 text-blue-400'}`}>{bl.produit}</span>
                   </td>
-                  <td className="py-3 px-4 font-mono font-bold text-white">{Number(bl.quantite).toLocaleString('fr-FR')} L</td>
+                  <td className="py-3 px-4 font-mono font-bold text-white">{Number(bl.quantite).toLocaleString('fr-FR').replace(/\u8998/g, ' ')} L</td>
                   <td className="py-3 px-4 font-medium">{bl.client?.nom}</td>
                   <td className="py-3 px-4">{bl.destination?.nom} ({bl.destination?.region})</td>
                   <td className="py-3 px-4">{bl.transporteur?.nom}</td>

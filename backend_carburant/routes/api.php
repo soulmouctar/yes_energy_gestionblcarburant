@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\LiquidationController;
 use App\Http\Controllers\Api\RapportController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ActivityLogController;
+use App\Http\Controllers\Api\SettingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,8 +22,10 @@ use App\Http\Controllers\Api\ActivityLogController;
 |--------------------------------------------------------------------------
 */
 
-// Auth Public Route
+// Public Routes (Auth & System Settings)
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/settings', [SettingController::class, 'index']);
+Route::post('/settings', [SettingController::class, 'update']);
 
 // Authenticated Routes
 Route::middleware('auth:sanctum')->group(function () {

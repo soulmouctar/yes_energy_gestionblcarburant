@@ -34,7 +34,8 @@ class UserController extends Controller
             $file = $request->file('photo');
             $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
             $file->move(public_path('uploads/avatars'), $filename);
-            $validated['avatar'] = url('uploads/avatars/' . $filename);
+            // Store relative path in database
+            $validated['avatar'] = '/uploads/avatars/' . $filename;
         }
 
         $user = User::create($validated);
@@ -71,7 +72,8 @@ class UserController extends Controller
             $file = $request->file('photo');
             $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
             $file->move(public_path('uploads/avatars'), $filename);
-            $validated['avatar'] = url('uploads/avatars/' . $filename);
+            // Store relative path in database
+            $validated['avatar'] = '/uploads/avatars/' . $filename;
         }
 
         $user->update($validated);

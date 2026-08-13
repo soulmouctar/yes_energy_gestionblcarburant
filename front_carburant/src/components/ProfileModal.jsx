@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { X, User, Save, Upload, Check, Image as ImageIcon } from 'lucide-react';
+import { getAvatarUrl } from '../utils/avatar';
 
 const ProfileModal = ({ onClose }) => {
   const { user } = useAuth();
@@ -9,7 +10,7 @@ const ProfileModal = ({ onClose }) => {
   const [email, setEmail] = useState(user?.email || '');
   const [avatar, setAvatar] = useState(user?.avatar || '');
   const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(user?.avatar || '');
+  const [previewUrl, setPreviewUrl] = useState(getAvatarUrl(user?.avatar, user?.name));
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');

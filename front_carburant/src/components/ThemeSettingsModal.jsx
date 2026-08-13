@@ -1,30 +1,30 @@
 import React from 'react';
 import { useTheme } from '../context/ThemeContext';
-import { X, Palette, Sun, Moon, Check } from 'lucide-react';
+import { X, Palette, Sun, Moon, Check, Database } from 'lucide-react';
 
 const ThemeSettingsModal = ({ onClose }) => {
   const { theme, toggleTheme, colorScheme, changeColorScheme } = useTheme();
 
   const schemes = [
     {
-      id: 'emerald',
-      name: 'Verte Émeraude (Carburant Vert / Écologique)',
-      bg: 'from-emerald-500 to-teal-600',
-      border: 'border-emerald-500',
-      previewText: 'text-emerald-400',
-      badgeBg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+      id: 'red',
+      name: 'Flamme Rouge YES ENERGY (Couleur Officielle Logo)',
+      bg: 'from-red-600 to-rose-700',
+      border: 'border-red-500',
+      previewText: 'text-red-500',
+      badgeBg: 'bg-red-500/10 text-red-400 border-red-500/20',
     },
     {
       id: 'blue',
-      name: 'Bleue Saphir (Gasoil / Haute Performance)',
-      bg: 'from-blue-500 to-cyan-600',
+      name: 'Bleu Pétrole Saphir (Gasoil & Hydrocarbures)',
+      bg: 'from-blue-600 to-indigo-600',
       border: 'border-blue-500',
       previewText: 'text-blue-400',
       badgeBg: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
     },
     {
       id: 'amber',
-      name: 'Ambre Dorée (Essence Super / Énergie)',
+      name: 'Ambre Solaire (Essence Super 95/98)',
       bg: 'from-amber-500 to-amber-600',
       border: 'border-amber-500',
       previewText: 'text-amber-400',
@@ -37,13 +37,19 @@ const ThemeSettingsModal = ({ onClose }) => {
       <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
         <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-950/50">
           <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <Palette className="w-5 h-5 text-emerald-400" />
-            Paramétrage des Couleurs & Thème
+            <Palette className="w-5 h-5 text-red-500" />
+            Paramétrage des Couleurs & Thème Système
           </h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-white cursor-pointer"><X className="w-5 h-5" /></button>
         </div>
 
         <div className="p-6 space-y-6">
+          {/* Database Sync Notice */}
+          <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-2.5 text-xs text-slate-300">
+            <Database className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>Toute modification est <strong>enregistrée en base de données</strong> et appliquée à tous les utilisateurs du système.</span>
+          </div>
+
           {/* Light / Dark Mode toggle section */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Mode d'Affichage Lumineux</label>
@@ -51,9 +57,9 @@ const ThemeSettingsModal = ({ onClose }) => {
               <button
                 type="button"
                 onClick={() => theme !== 'light' && toggleTheme()}
-                className={`p-3.5 rounded-xl border flex items-center gap-3 transition ${
+                className={`p-3.5 rounded-xl border flex items-center gap-3 transition cursor-pointer ${
                   theme === 'light'
-                    ? 'border-emerald-500 bg-slate-800 text-white font-bold shadow-md'
+                    ? 'border-red-500 bg-slate-800 text-white font-bold shadow-md'
                     : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -67,9 +73,9 @@ const ThemeSettingsModal = ({ onClose }) => {
               <button
                 type="button"
                 onClick={() => theme !== 'dark' && toggleTheme()}
-                className={`p-3.5 rounded-xl border flex items-center gap-3 transition ${
+                className={`p-3.5 rounded-xl border flex items-center gap-3 transition cursor-pointer ${
                   theme === 'dark'
-                    ? 'border-emerald-500 bg-slate-800 text-white font-bold shadow-md'
+                    ? 'border-red-500 bg-slate-800 text-white font-bold shadow-md'
                     : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -82,9 +88,9 @@ const ThemeSettingsModal = ({ onClose }) => {
             </div>
           </div>
 
-          {/* Color Schemes section */}
+          {/* Color Schemes section matching YES ENERGY Logo */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Palette de Couleur Principale du Système</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Palette Officielle YES ENERGY (Couleurs de Marque)</label>
             <div className="space-y-2.5">
               {schemes.map((s) => (
                 <button
@@ -103,7 +109,9 @@ const ThemeSettingsModal = ({ onClose }) => {
                     </div>
                     <span className="text-xs font-bold">{s.name}</span>
                   </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${s.badgeBg}`}>Actif</span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${s.badgeBg}`}>
+                    {colorScheme === s.id ? 'Actif' : 'Choisir'}
+                  </span>
                 </button>
               ))}
             </div>
@@ -112,9 +120,9 @@ const ThemeSettingsModal = ({ onClose }) => {
           <div className="pt-4 border-t border-slate-800 flex justify-end">
             <button
               onClick={onClose}
-              className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-slate-950 font-bold rounded-xl text-xs shadow-lg shadow-emerald-500/20"
+              className="px-5 py-2.5 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 text-white font-bold rounded-xl text-xs shadow-lg shadow-red-600/20 cursor-pointer"
             >
-              Fermer et Appliquer
+              Enregistrer en BDD & Appliquer
             </button>
           </div>
         </div>

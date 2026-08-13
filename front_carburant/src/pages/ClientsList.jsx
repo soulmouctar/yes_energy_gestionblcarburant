@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Users, Plus, Search, Edit, Trash2, X, Phone, MapPin } from 'lucide-react';
+import { Users, Plus, Search, Edit, Trash2, X, Download } from 'lucide-react';
+import { generateTablePdf } from '../utils/generateTablePdf';
 
 const ClientsList = () => {
   const { hasRole } = useAuth();
@@ -79,26 +80,58 @@ const ClientsList = () => {
     c.adresse?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleExportPdf = () => {
+    const totalVolume = filtered.reduce((sum, c) => sum + Number(c.volume_total || 0), 0);
+    const volumeFormatted = totalVolume.toLocaleString('fr-FR').replace(/\u8998/g, ' ');
+
+    generateTablePdf({
+      title: 'Liste des Clients Destinataires',
+      subtitle: 'Entreprises minières, dépôts et stations partenaires réceptionnant les carburants',
+      summaryText: `Total : ${filtered.length} Client(s) Destinataire(s) | Volume Total Livré : ${volumeFormatted} Litres`,
+      action: 'download',
+      filename: 'Liste_Clients_YES_ENERGY.pdf',
+      columns: [
+        { header: 'Client / Société', accessor: (c) => c.nom, bold: true, width: '*' },
+        { header: 'Contact', accessor: (c) => c.contact || '-', width: 'auto' },
+        { header: 'Téléphone', accessor: (c) => c.telephone || '-', width: 'auto' },
+        { header: 'Adresse Dépôt', accessor: (c) => c.adresse || '-', width: '*' },
+        { header: 'BLs Livrés', accessor: (c) => `${c.bls_count || 0} BLs`, alignment: 'center', width: 'auto' },
+        { header: 'Volume Total (L)', accessor: (c) => `${Number(c.volume_total || 0).toLocaleString('fr-FR').replace(/\u8998/g, ' ')} L`, alignment: 'right', bold: true, width: 'auto' }
+      ],
+      rows: filtered
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <Users className="w-6 h-6 text-amber-400" />
             Gestion des Clients
           </h2>
           <p className="text-sm text-slate-400">Entreprises minières, dépôts et stations partenaires réceptionnant les carburants</p>
         </div>
 
-        {hasRole(['admin', 'exploitation']) && (
+        <div className="flex items-center gap-3">
           <button
-            onClick={() => handleOpenModal()}
-            className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-sm shadow-lg shadow-amber-500/20"
+            onClick={handleExportPdf}
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition shadow-lg cursor-pointer"
           >
-            <Plus className="w-4 h-4 stroke-[3]" />
-            <span>Nouveau Client</span>
+            <Download className="w-4 h-4 text-white" />
+            <span>Exporter PDF</span>
           </button>
-        )}
+
+          {hasRole(['admin', 'exploitation']) && (
+            <button
+              onClick={() => handleOpenModal()}
+              className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-lg shadow-amber-500/20 cursor-pointer"
+            >
+              <Plus className="w-4 h-4 stroke-[3]" />
+              <span>Nouveau Client</span>
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
@@ -129,19 +162,19 @@ const ClientsList = () => {
           <tbody className="divide-y divide-slate-800/60">
             {filtered.map((cli) => (
               <tr key={cli.id} className="hover:bg-slate-800/40">
-                <td className="py-3.5 px-4 font-bold text-white text-sm">{cli.nom}</td>
+                <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white text-sm">{cli.nom}</td>
                 <td className="py-3.5 px-4 font-medium">
                   <div className="text-slate-200">{cli.contact || '-'}</div>
                   <div className="text-[10px] font-mono text-slate-400">{cli.telephone}</div>
                 </td>
                 <td className="py-3.5 px-4 text-slate-300">{cli.adresse || '-'}</td>
                 <td className="py-3.5 px-4 font-mono font-bold text-amber-400">{cli.bls_count || 0} BLs</td>
-                <td className="py-3.5 px-4 font-mono font-bold text-white">{Number(cli.volume_total || 0).toLocaleString('fr-FR')} L</td>
+                <td className="py-3.5 px-4 font-mono font-bold text-white">{Number(cli.volume_total || 0).toLocaleString('fr-FR').replace(/\u8998/g, ' ')} L</td>
                 <td className="py-3.5 px-4 text-right">
                   {hasRole(['admin', 'exploitation']) && (
                     <div className="flex justify-end gap-1.5">
-                      <button onClick={() => handleOpenModal(cli)} className="p-1.5 bg-slate-800 text-blue-400 rounded-lg"><Edit className="w-4 h-4" /></button>
-                      <button onClick={() => handleDelete(cli.id, cli.nom)} className="p-1.5 bg-slate-800 text-red-400 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                      <button onClick={() => handleOpenModal(cli)} className="p-1.5 bg-slate-800 text-blue-400 rounded-lg cursor-pointer"><Edit className="w-4 h-4" /></button>
+                      <button onClick={() => handleDelete(cli.id, cli.nom)} className="p-1.5 bg-slate-800 text-red-400 rounded-lg cursor-pointer"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   )}
                 </td>
@@ -199,8 +232,8 @@ const ClientsList = () => {
                 />
               </div>
               <div className="pt-4 border-t border-slate-800 flex justify-end gap-2">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl border border-slate-700 text-slate-300">Annuler</button>
-                <button type="submit" className="px-5 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold">Enregistrer</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl border border-slate-700 text-slate-300 cursor-pointer">Annuler</button>
+                <button type="submit" className="px-5 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold cursor-pointer">Enregistrer</button>
               </div>
             </form>
           </div>

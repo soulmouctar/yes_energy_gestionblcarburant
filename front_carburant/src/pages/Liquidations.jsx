@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { CheckCircle2, Clock, Search, CheckSquare, Calendar, FileText, Check, X } from 'lucide-react';
+import { CheckCircle2, Clock, Search, CheckSquare, Calendar, FileText, Check, X, Download } from 'lucide-react';
+import { generateTablePdf } from '../utils/generateTablePdf';
+import { generateBlPdf } from '../utils/generateBlPdf';
 
 const Liquidations = () => {
   const { hasRole } = useAuth();
@@ -99,27 +101,64 @@ const Liquidations = () => {
     b.destination?.nom.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleExportPdf = () => {
+    const totalVol = filteredBls.reduce((sum, b) => sum + Number(b.quantite || 0), 0);
+    const volFormatted = totalVol.toLocaleString('fr-FR').replace(/\u8998/g, ' ');
+    const isPending = filter === 'pending';
+
+    generateTablePdf({
+      title: isPending ? 'Rapport des BL en Attente de Liquidation' : 'Rapport des BL Liquidés',
+      subtitle: 'Suivi et apurement des Bons de Livraison de carburants',
+      summaryText: `Statut : ${isPending ? 'EN ATTENTE DE LIQUIDATION' : 'LIQUIDÉS'} | Total : ${filteredBls.length} BL(s) | Volume Cumulé : ${volFormatted} Litres`,
+      action: 'download',
+      filename: `Rapport_Liquidations_${filter}_YES_ENERGY.pdf`,
+      columns: [
+        { header: 'N° BL', accessor: (b) => b.numero_bl, bold: true, width: 'auto' },
+        { header: 'Date Émission', accessor: (b) => b.date_bl || '-', width: 'auto' },
+        { header: 'Produit', accessor: (b) => b.produit, width: 'auto' },
+        { header: 'Volume (L)', accessor: (b) => `${Number(b.quantite || 0).toLocaleString('fr-FR').replace(/\u8998/g, ' ')} L`, alignment: 'right', bold: true, width: 'auto' },
+        { header: 'Client', accessor: (b) => b.client?.nom || '-', width: '*' },
+        { header: 'Destination', accessor: (b) => b.destination?.nom || '-', width: '*' },
+        { header: 'Transporteur', accessor: (b) => b.transporteur?.nom || '-', width: '*' },
+        { header: 'Camion', accessor: (b) => b.camion?.immatriculation || '-', width: 'auto' },
+        { header: 'Statut', accessor: (b) => b.statut, alignment: 'center', width: 'auto' },
+        { header: 'Date Liq.', accessor: (b) => b.date_liquidation || 'Attente', alignment: 'center', width: 'auto' }
+      ],
+      rows: filteredBls
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <CheckCircle2 className="w-6 h-6 text-amber-400" />
             Suivi & Liquidation Administrative
           </h2>
           <p className="text-sm text-slate-400">Validation de la livraison effective, déchargement et apurement des BL</p>
         </div>
 
-        {filter === 'pending' && selectedIds.length > 0 && hasRole(['admin', 'exploitation']) && (
+        <div className="flex items-center gap-3">
           <button
-            onClick={() => setIsBulkModalOpen(true)}
-            className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-sm shadow-lg shadow-emerald-500/20"
+            onClick={handleExportPdf}
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition shadow-lg cursor-pointer"
           >
-            <CheckSquare className="w-4 h-4" />
-            <span>Liquider la Sélection ({selectedIds.length})</span>
+            <Download className="w-4 h-4 text-white" />
+            <span>Exporter PDF</span>
           </button>
-        )}
+
+          {filter === 'pending' && selectedIds.length > 0 && hasRole(['admin', 'exploitation']) && (
+            <button
+              onClick={() => setIsBulkModalOpen(true)}
+              className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-lg shadow-emerald-500/20 cursor-pointer"
+            >
+              <CheckSquare className="w-4 h-4" />
+              <span>Liquider la Sélection ({selectedIds.length})</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -128,7 +167,7 @@ const Liquidations = () => {
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-amber-400">BL En Attente de Liquidation</span>
             <div className="text-2xl font-black text-white mt-1">{stats?.total_pending || 0} BLs</div>
-            <p className="text-xs text-slate-400 mt-1">Volume cumulé : <strong className="text-amber-400">{Number(stats?.volume_pending || 0).toLocaleString('fr-FR')} L</strong></p>
+            <p className="text-xs text-slate-400 mt-1">Volume cumulé : <strong className="text-amber-400">{Number(stats?.volume_pending || 0).toLocaleString('fr-FR').replace(/\u8998/g, ' ')} L</strong></p>
           </div>
           <div className="p-3 bg-amber-500/10 text-amber-400 rounded-xl">
             <Clock className="w-6 h-6" />
@@ -139,7 +178,7 @@ const Liquidations = () => {
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">BL Déjà Liquidés</span>
             <div className="text-2xl font-black text-white mt-1">{stats?.total_liquidated || 0} BLs</div>
-            <p className="text-xs text-slate-400 mt-1">Volume apuré : <strong className="text-emerald-400">{Number(stats?.volume_liquidated || 0).toLocaleString('fr-FR')} L</strong></p>
+            <p className="text-xs text-slate-400 mt-1">Volume apuré : <strong className="text-emerald-400">{Number(stats?.volume_liquidated || 0).toLocaleString('fr-FR').replace(/\u8998/g, ' ')} L</strong></p>
           </div>
           <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl">
             <CheckCircle2 className="w-6 h-6" />
@@ -152,13 +191,13 @@ const Liquidations = () => {
         <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800 w-full sm:w-auto">
           <button
             onClick={() => { setFilter('pending'); setSelectedIds([]); }}
-            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition ${filter === 'pending' ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400 hover:text-white'}`}
+            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${filter === 'pending' ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400 hover:text-white'}`}
           >
             En attente ({stats?.total_pending || 0})
           </button>
           <button
             onClick={() => { setFilter('liquidated'); setSelectedIds([]); }}
-            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition ${filter === 'liquidated' ? 'bg-emerald-500 text-slate-950 shadow' : 'text-slate-400 hover:text-white'}`}
+            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${filter === 'liquidated' ? 'bg-emerald-500 text-slate-950 shadow' : 'text-slate-400 hover:text-white'}`}
           >
             Liquidés ({stats?.total_liquidated || 0})
           </button>
@@ -187,7 +226,7 @@ const Liquidations = () => {
                     type="checkbox"
                     onChange={handleSelectAll}
                     checked={selectedIds.length > 0 && selectedIds.length === filteredBls.length}
-                    className="rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
+                    className="rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500 cursor-pointer"
                   />
                 </th>
               )}
@@ -215,37 +254,89 @@ const Liquidations = () => {
                         type="checkbox"
                         checked={selectedIds.includes(bl.id)}
                         onChange={() => handleSelectOne(bl.id)}
-                        className="rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
+                        className="rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500 cursor-pointer"
                       />
                     </td>
                   )}
-                  <td className="py-3.5 px-4 font-mono font-bold text-amber-400">{bl.numero_bl}</td>
-                  <td className="py-3.5 px-4 font-medium">{bl.date_bl}</td>
+                  {/* 1. N° BL */}
+                  <td className="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white text-sm whitespace-nowrap">{bl.numero_bl}</td>
+
+                  {/* 2. Date BL */}
+                  <td className="py-3.5 px-4 font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">{bl.date_bl}</td>
+
+                  {/* 3. Produit & Volume */}
                   <td className="py-3.5 px-4">
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${bl.produit === 'Essence' ? 'bg-amber-500/10 text-amber-400' : 'bg-blue-500/10 text-blue-400'}`}>{bl.produit}</span>
-                    <div className="font-mono font-bold text-white mt-0.5">{Number(bl.quantite).toLocaleString('fr-FR')} L</div>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${bl.produit === 'Essence' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'}`}>
+                      {bl.produit}
+                    </span>
+                    <div className="font-mono font-bold text-slate-900 dark:text-white text-sm mt-1">
+                      {Number(bl.quantite).toLocaleString('fr-FR').replace(/\u8998/g, ' ')} L
+                    </div>
                   </td>
+
+                  {/* 4. Client / Destination */}
                   <td className="py-3.5 px-4">
-                    <div className="font-semibold text-white">{bl.client?.nom}</div>
-                    <div className="text-[10px] text-slate-400">📍 {bl.destination?.nom}</div>
+                    <div className="font-bold text-slate-900 dark:text-white text-sm">{bl.client?.nom || '-'}</div>
+                    <div className="text-xs text-slate-700 dark:text-slate-400 font-medium mt-0.5">
+                      📍 {bl.destination?.nom || '-'} {bl.destination?.region ? `(${bl.destination.region})` : ''}
+                    </div>
                   </td>
+
+                  {/* 5. Transporteur / Camion / Chauffeur */}
                   <td className="py-3.5 px-4">
-                    <div className="text-slate-200">{bl.transporteur?.nom}</div>
-                    <div className="text-[10px] text-amber-400 font-mono">🚛 {bl.camion?.immatriculation}</div>
+                    <div className="font-semibold text-slate-900 dark:text-slate-200 text-xs">{bl.transporteur?.nom || '-'}</div>
+                    <div className="text-xs text-blue-600 dark:text-blue-400 font-mono font-bold mt-0.5">
+                      🚛 {bl.camion?.immatriculation || '-'}
+                    </div>
+                    {bl.chauffeur?.nom && (
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        👤 {bl.chauffeur.nom}
+                      </div>
+                    )}
                   </td>
-                  <td className="py-3.5 px-4 font-mono">
-                    {bl.date_liquidation ? <span className="text-emerald-400 font-bold">{bl.date_liquidation}</span> : <span className="text-slate-500 italic">En attente</span>}
+
+                  {/* 6. Date Liquidation */}
+                  <td className="py-3.5 px-4 font-mono whitespace-nowrap">
+                    {bl.date_liquidation ? (
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+                        {bl.date_liquidation}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400 dark:text-slate-500 italic text-xs">
+                        En attente
+                      </span>
+                    )}
                   </td>
-                  <td className="py-3.5 px-4">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${bl.statut === 'Liquidé' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>{bl.statut}</span>
+
+                  {/* 7. Statut */}
+                  <td className="py-3.5 px-4 whitespace-nowrap">
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
+                      bl.statut === 'Liquidé'
+                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                    }`}>
+                      {bl.statut}
+                    </span>
                   </td>
-                  <td className="py-3.5 px-4 text-right">
-                    {bl.statut !== 'Liquidé' && hasRole(['admin', 'exploitation']) && (
+
+                  {/* 8. Action */}
+                  <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                    {bl.statut !== 'Liquidé' && hasRole(['admin', 'exploitation']) ? (
                       <button
                         onClick={() => setActiveBl(bl)}
-                        className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-slate-950 font-bold text-xs transition"
+                        className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition shadow-md shadow-emerald-500/20 cursor-pointer flex items-center gap-1.5 ml-auto"
                       >
-                        Liquider
+                        <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                        <span>Liquider</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => generateBlPdf(bl, 'print')}
+                        className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs transition shadow-md shadow-blue-500/20 cursor-pointer flex items-center gap-1.5 ml-auto"
+                        title="Imprimer / Imprimer Fiche BL"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-white" />
+                        <span>Fiche BL</span>
                       </button>
                     )}
                   </td>
@@ -261,18 +352,18 @@ const Liquidations = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
             <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-950/50">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />
                 Liquider le BL #{activeBl.numero_bl}
               </h3>
-              <button onClick={() => setActiveBl(null)} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
+              <button onClick={() => setActiveBl(null)} className="text-slate-400 hover:text-slate-900 dark:hover:text-white"><X className="w-5 h-5" /></button>
             </div>
 
             <form onSubmit={handleSingleLiquider} className="p-6 space-y-4">
-              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs space-y-1">
-                <p>Client: <strong className="text-white">{activeBl.client?.nom}</strong></p>
-                <p>Destination: <strong className="text-white">{activeBl.destination?.nom}</strong></p>
-                <p>Produit: <strong className="text-amber-400">{activeBl.produit} - {Number(activeBl.quantite).toLocaleString('fr-FR')} L</strong></p>
+              <div className="bg-slate-100 dark:bg-slate-950 p-3.5 rounded-xl border border-slate-300 dark:border-slate-800 text-xs space-y-1.5 text-slate-800 dark:text-slate-200">
+                <p className="font-semibold text-slate-700 dark:text-slate-300">Client: <strong className="font-bold text-slate-900 dark:text-white">{activeBl.client?.nom}</strong></p>
+                <p className="font-semibold text-slate-700 dark:text-slate-300">Destination: <strong className="font-bold text-slate-900 dark:text-white">{activeBl.destination?.nom}</strong></p>
+                <p className="font-semibold text-slate-700 dark:text-slate-300">Produit: <strong className="font-extrabold text-amber-600 dark:text-amber-400">{activeBl.produit} - {Number(activeBl.quantite).toLocaleString('fr-FR').replace(/\u8998/g, ' ')} L</strong></p>
               </div>
 
               <div>
@@ -309,8 +400,8 @@ const Liquidations = () => {
               </div>
 
               <div className="pt-4 border-t border-slate-800 flex justify-end gap-2">
-                <button type="button" onClick={() => setActiveBl(null)} className="px-4 py-2 rounded-xl border border-slate-700 text-slate-300">Annuler</button>
-                <button type="submit" className="px-5 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold">Confirmer la Liquidation</button>
+                <button type="button" onClick={() => setActiveBl(null)} className="px-4 py-2 rounded-xl border border-slate-700 text-slate-300 cursor-pointer">Annuler</button>
+                <button type="submit" className="px-5 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold cursor-pointer">Confirmer la Liquidation</button>
               </div>
             </form>
           </div>
@@ -352,8 +443,8 @@ const Liquidations = () => {
               </div>
 
               <div className="pt-4 border-t border-slate-800 flex justify-end gap-2">
-                <button type="button" onClick={() => setIsBulkModalOpen(false)} className="px-4 py-2 rounded-xl border border-slate-700 text-slate-300">Annuler</button>
-                <button type="submit" className="px-5 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold">Valider Liquidation Groupée</button>
+                <button type="button" onClick={() => setIsBulkModalOpen(false)} className="px-4 py-2 rounded-xl border border-slate-700 text-slate-300 cursor-pointer">Annuler</button>
+                <button type="submit" className="px-5 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold cursor-pointer">Valider Liquidation Groupée</button>
               </div>
             </form>
           </div>

@@ -12,7 +12,6 @@ import {
   BarChart3,
   History,
   ShieldCheck,
-  Fuel,
   X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -34,8 +33,6 @@ const Sidebar = ({ isOpen, onClose }) => {
     { name: 'Utilisateurs', to: '/users', icon: ShieldCheck, roles: ['admin'] },
   ];
 
-  const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=2563eb&color=fff`;
-
   return (
     <>
       {/* Mobile Backdrop Overlay */}
@@ -48,33 +45,35 @@ const Sidebar = ({ isOpen, onClose }) => {
 
       {/* Fixed Sidebar Container */}
       <aside
-        className={`fixed lg:sticky top-0 left-0 h-screen z-50 w-64 bg-slate-900 border-r border-slate-800 flex flex-col no-print shrink-0 transform transition-transform duration-200 ease-in-out ${
+        className={`fixed lg:sticky top-0 left-0 h-screen z-50 w-72 bg-slate-900 border-r border-slate-800 flex flex-col no-print shrink-0 transform transition-transform duration-200 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800 bg-slate-950/40 shrink-0">
+        {/* Brand Header with YES ENERGY Logo & Adaptive Light/Dark Title */}
+        <div className="h-20 flex items-center justify-between px-5 border-b border-slate-800 bg-slate-950/60 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white shadow-lg shadow-blue-500/20">
-              <Fuel className="w-6 h-6 stroke-[2.5]" />
-            </div>
+            <img
+              src="/logo_yes_energy.png"
+              alt="YES ENERGY Logo"
+              className="w-12 h-12 object-contain drop-shadow-md shrink-0"
+            />
             <div>
-              <h1 className="font-extrabold text-lg text-white tracking-wide leading-tight">CarbuLog <span className="text-blue-400 font-light text-xs px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/20">v1.0</span></h1>
-              <p className="text-[11px] text-slate-400 font-medium">Gestion BL Carburant</p>
+              <h1 className="font-black text-xl text-slate-900 dark:text-white tracking-wide leading-tight">GESTION BL</h1>
+              <p className="text-[11px] font-bold text-red-500 tracking-wider uppercase">YES ENERGY</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white"
+            className="lg:hidden p-2 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white"
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6" />
           </button>
         </div>
 
         {/* Navigation Links */}
-        <div className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-          <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Navigation Principale</div>
+        <div className="flex-1 py-5 px-3.5 space-y-1.5 overflow-y-auto">
+          <div className="px-3 pb-2 text-xs font-extrabold uppercase tracking-wider text-slate-400">Navigation Principale</div>
           {navigation.map((item) => {
             if (item.roles && user && !item.roles.includes(user.role)) {
               return null;
@@ -89,36 +88,18 @@ const Sidebar = ({ isOpen, onClose }) => {
                 end={item.to === '/'}
                 onClick={onClose}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                  `flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-semibold transition-all duration-150 ${
                     isActive
-                      ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30 shadow-sm font-bold'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                      ? 'bg-blue-600/20 text-blue-600 dark:text-blue-400 border border-blue-500/40 shadow-sm font-bold text-base'
+                      : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-800/70'
                   }`
                 }
               >
-                <Icon className="w-4 h-4 shrink-0" />
+                <Icon className="w-5 h-5 shrink-0" />
                 <span>{item.name}</span>
               </NavLink>
             );
           })}
-        </div>
-
-        {/* User Footer info */}
-        <div className="p-4 border-t border-slate-800 bg-slate-950/30 shrink-0">
-          <div className="flex items-center gap-3">
-            <img
-              src={user?.avatar || defaultAvatar}
-              alt={user?.name}
-              className="w-9 h-9 rounded-full object-cover border border-blue-400"
-            />
-            <div className="overflow-hidden">
-              <p className="text-sm font-semibold text-white truncate">{user?.name}</p>
-              <p className="text-xs text-slate-400 capitalize flex items-center gap-1">
-                <span className={`w-1.5 h-1.5 rounded-full ${user?.role === 'admin' ? 'bg-purple-400' : user?.role === 'exploitation' ? 'bg-blue-400' : 'bg-emerald-400'}`}></span>
-                Rôle: {user?.role}
-              </p>
-            </div>
-          </div>
         </div>
       </aside>
     </>

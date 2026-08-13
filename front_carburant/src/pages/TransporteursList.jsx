@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Building2, Plus, Search, Edit, Trash2, X } from 'lucide-react';
+import { Building2, Plus, Search, Edit, Trash2, X, Download } from 'lucide-react';
+import { generateTablePdf } from '../utils/generateTablePdf';
 
 const TransporteursList = () => {
   const { hasRole } = useAuth();
@@ -79,26 +80,56 @@ const TransporteursList = () => {
     t.responsable?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleExportPdf = () => {
+    generateTablePdf({
+      title: 'Liste Officielle des Transporteurs',
+      subtitle: 'Sociétés de logistique pétrolière et propriétaires de flottes de citernes',
+      summaryText: `Total : ${filtered.length} Société(s) de Transport enregistrée(s) au dépôt central.`,
+      action: 'download',
+      filename: 'Liste_Transporteurs_YES_ENERGY.pdf',
+      columns: [
+        { header: 'Société de Transport', accessor: (t) => t.nom, bold: true, width: '*' },
+        { header: 'Responsable', accessor: (t) => t.responsable || '-', width: 'auto' },
+        { header: 'Téléphone', accessor: (t) => t.telephone || '-', width: 'auto' },
+        { header: 'Adresse', accessor: (t) => t.adresse || '-', width: '*' },
+        { header: 'Camions', accessor: (t) => `${t.camions_count || 0} Citernes`, alignment: 'center', width: 'auto' },
+        { header: 'Chauffeurs', accessor: (t) => `${t.chauffeurs_count || 0}`, alignment: 'center', width: 'auto' },
+        { header: 'BL Totaux', accessor: (t) => `${t.bls_count || 0}`, alignment: 'center', width: 'auto' }
+      ],
+      rows: filtered
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <Building2 className="w-6 h-6 text-amber-400" />
             Gestion des Transporteurs
           </h2>
           <p className="text-sm text-slate-400">Entreprises partenaires de logistique pétrolière et propriétaires de flottes de citernes</p>
         </div>
 
-        {hasRole(['admin', 'exploitation']) && (
+        <div className="flex items-center gap-3">
           <button
-            onClick={() => handleOpenModal()}
-            className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-sm shadow-lg shadow-amber-500/20"
+            onClick={handleExportPdf}
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition shadow-lg cursor-pointer"
           >
-            <Plus className="w-4 h-4 stroke-[3]" />
-            <span>Nouveau Transporteur</span>
+            <Download className="w-4 h-4 text-white" />
+            <span>Exporter PDF</span>
           </button>
-        )}
+
+          {hasRole(['admin', 'exploitation']) && (
+            <button
+              onClick={() => handleOpenModal()}
+              className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-lg shadow-amber-500/20 cursor-pointer"
+            >
+              <Plus className="w-4 h-4 stroke-[3]" />
+              <span>Nouveau Transporteur</span>
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
@@ -130,7 +161,7 @@ const TransporteursList = () => {
           <tbody className="divide-y divide-slate-800/60">
             {filtered.map((t) => (
               <tr key={t.id} className="hover:bg-slate-800/40">
-                <td className="py-3.5 px-4 font-bold text-white text-sm">{t.nom}</td>
+                <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white text-sm">{t.nom}</td>
                 <td className="py-3.5 px-4 font-medium">
                   <div className="text-slate-200">{t.responsable || '-'}</div>
                   <div className="text-[10px] font-mono text-slate-400">{t.telephone}</div>
@@ -142,8 +173,8 @@ const TransporteursList = () => {
                 <td className="py-3.5 px-4 text-right">
                   {hasRole(['admin', 'exploitation']) && (
                     <div className="flex justify-end gap-1.5">
-                      <button onClick={() => handleOpenModal(t)} className="p-1.5 bg-slate-800 text-blue-400 rounded-lg"><Edit className="w-4 h-4" /></button>
-                      <button onClick={() => handleDelete(t.id, t.nom)} className="p-1.5 bg-slate-800 text-red-400 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                      <button onClick={() => handleOpenModal(t)} className="p-1.5 bg-slate-800 text-blue-400 rounded-lg cursor-pointer"><Edit className="w-4 h-4" /></button>
+                      <button onClick={() => handleDelete(t.id, t.nom)} className="p-1.5 bg-slate-800 text-red-400 rounded-lg cursor-pointer"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   )}
                 </td>
@@ -202,8 +233,8 @@ const TransporteursList = () => {
                 />
               </div>
               <div className="pt-4 border-t border-slate-800 flex justify-end gap-2">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl border border-slate-700 text-slate-300">Annuler</button>
-                <button type="submit" className="px-5 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold">Enregistrer</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl border border-slate-700 text-slate-300 cursor-pointer">Annuler</button>
+                <button type="submit" className="px-5 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold cursor-pointer">Enregistrer</button>
               </div>
             </form>
           </div>

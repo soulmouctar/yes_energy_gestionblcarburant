@@ -43,4 +43,26 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * Accessor to dynamically resolve full avatar URL using environment APP_URL config.
+     */
+    public function getAvatarAttribute($value)
+    {
+        if (!$value) {
+            return null;
+        }
+
+        // External avatar services like ui-avatars.com
+        if (str_contains($value, 'ui-avatars.com')) {
+            return $value;
+        }
+
+        // Clean any legacy hardcoded domain or IP address from stored value
+        $cleanPath = preg_replace('/^https?:\/\/[^\/]+/', '', $value);
+        $cleanPath = '/' . ltrim($cleanPath, '/');
+
+        // Dynamically prepend APP_URL from .env configuration
+        return url($cleanPath);
+    }
 }

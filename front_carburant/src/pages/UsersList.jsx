@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { ShieldCheck, Plus, Edit, Trash2, X, Upload, Image as ImageIcon } from 'lucide-react';
+import { ShieldCheck, Plus, Edit, Trash2, X, Upload, Download } from 'lucide-react';
+import { generateTablePdf } from '../utils/generateTablePdf';
+import { getAvatarUrl } from '../utils/avatar';
 
 const UsersList = () => {
   const [users, setUsers] = useState([]);
@@ -98,24 +100,51 @@ const UsersList = () => {
     }
   };
 
+  const handleExportPdf = () => {
+    generateTablePdf({
+      title: 'Liste des Utilisateurs et Privilèges',
+      subtitle: 'Administration du personnel et habilitations sur l\'application GESTION BL',
+      summaryText: `Total : ${users.length} Compte(s) d'utilisateur actif(s)`,
+      action: 'download',
+      filename: 'Liste_Utilisateurs_YES_ENERGY.pdf',
+      columns: [
+        { header: 'Nom et Prénom', accessor: (u) => u.name, bold: true, width: '*' },
+        { header: 'Adresse Email', accessor: (u) => u.email, width: '*' },
+        { header: 'Rôle & Privilèges', accessor: (u) => (u.role || '').toUpperCase(), alignment: 'center', bold: true, width: 'auto' },
+        { header: 'Date de Création', accessor: (u) => new Date(u.created_at).toLocaleDateString('fr-FR'), alignment: 'center', width: 'auto' }
+      ],
+      rows: users
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <ShieldCheck className="w-6 h-6 text-purple-400" />
             Administration des Utilisateurs & Photos Réelles
           </h2>
           <p className="text-sm text-slate-400">Gestion des comptes, privilèges et photos d'identité des utilisateurs</p>
         </div>
 
-        <button
-          onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-bold px-4 py-2.5 rounded-xl text-sm shadow-lg shadow-purple-500/20 cursor-pointer"
-        >
-          <Plus className="w-4 h-4 stroke-[3]" />
-          <span>Nouvel Utilisateur</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExportPdf}
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition shadow-lg cursor-pointer"
+          >
+            <Download className="w-4 h-4 text-white" />
+            <span>Exporter PDF</span>
+          </button>
+
+          <button
+            onClick={() => handleOpenModal()}
+            className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-lg shadow-purple-500/20 cursor-pointer"
+          >
+            <Plus className="w-4 h-4 stroke-[3]" />
+            <span>Nouvel Utilisateur</span>
+          </button>
+        </div>
       </div>
 
       <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
@@ -138,12 +167,12 @@ const UsersList = () => {
                 <tr key={u.id} className="hover:bg-slate-800/40">
                   <td className="py-3.5 px-4">
                     <img
-                      src={u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=f59e0b&color=000`}
+                      src={getAvatarUrl(u.avatar, u.name)}
                       alt={u.name}
                       className="w-9 h-9 rounded-full object-cover border border-purple-400"
                     />
                   </td>
-                  <td className="py-3.5 px-4 font-bold text-white text-sm">{u.name}</td>
+                  <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white text-sm">{u.name}</td>
                   <td className="py-3.5 px-4 font-mono text-slate-300">{u.email}</td>
                   <td className="py-3.5 px-4">
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
@@ -157,8 +186,8 @@ const UsersList = () => {
                   <td className="py-3.5 px-4 font-mono text-slate-400">{new Date(u.created_at).toLocaleDateString('fr-FR')}</td>
                   <td className="py-3.5 px-4 text-right">
                     <div className="flex justify-end gap-1.5">
-                      <button onClick={() => handleOpenModal(u)} className="p-1.5 bg-slate-800 text-blue-400 rounded-lg"><Edit className="w-4 h-4" /></button>
-                      <button onClick={() => handleDelete(u.id, u.name)} className="p-1.5 bg-slate-800 text-red-400 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                      <button onClick={() => handleOpenModal(u)} className="p-1.5 bg-slate-800 text-blue-400 rounded-lg cursor-pointer"><Edit className="w-4 h-4" /></button>
+                      <button onClick={() => handleDelete(u.id, u.name)} className="p-1.5 bg-slate-800 text-red-400 rounded-lg cursor-pointer"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </td>
                 </tr>
@@ -246,8 +275,8 @@ const UsersList = () => {
               </div>
 
               <div className="pt-4 border-t border-slate-800 flex justify-end gap-2">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl border border-slate-700 text-slate-300">Annuler</button>
-                <button type="submit" className="px-5 py-2 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-bold">Enregistrer l'Utilisateur</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl border border-slate-700 text-slate-300 cursor-pointer">Annuler</button>
+                <button type="submit" className="px-5 py-2 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-bold cursor-pointer">Enregistrer l'Utilisateur</button>
               </div>
             </form>
           </div>
